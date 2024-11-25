@@ -20,6 +20,8 @@ from transformers import (
     LlamaConfig,
     default_data_collator,
 )
+
+from transformers import AutoTokenizer
 from transformers.models.llama.modeling_llama import LlamaDecoderLayer
 
 import policies
@@ -124,7 +126,9 @@ def main(**kwargs):
         model.to(torch.bfloat16)
 
     # Load the tokenizer and add special tokens
-    tokenizer = LlamaTokenizer.from_pretrained(train_config.model_name)
+    #tokenizer = LlamaTokenizer.from_pretrained(train_config.model_name)
+    tokenizer = AutoTokenizer.from_pretrained(train_config.model_name, trust_remote_code=True) #Llama3只能用AutoTokenizer
+
     tokenizer.add_special_tokens(
             {
 
@@ -154,12 +158,14 @@ def main(**kwargs):
             limit_all_gathers=True,
             sync_module_states=train_config.low_cpu_fsdp,
             param_init_fn=lambda module: module.to_empty(device=torch.device("cuda"), recurse=False)
+            #param_init_fn=lambda module: module.to_empty(device=torch.device("cpu"), recurse=False)
             if train_config.low_cpu_fsdp and rank != 0 else None,
         )
         if fsdp_config.fsdp_activation_checkpointing:
             policies.apply_fsdp_checkpointing(model)
     elif not train_config.quantization and not train_config.enable_fsdp:
         model.to("cuda")
+        #model.to("cpu")
 
     dataset_config = generate_dataset_config(train_config, kwargs)
 

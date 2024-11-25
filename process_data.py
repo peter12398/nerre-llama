@@ -2,7 +2,7 @@ import json, jsonlines
 import sys
 
 
-NERRErepo_dir = '../NERRE/'
+NERRErepo_dir = "/home/xiaohu/workspace/NERRE/" #'../NERRE/'
 
 if NERRErepo_dir.endswith('/'):
     pass
